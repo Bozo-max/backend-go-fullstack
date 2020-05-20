@@ -2,15 +2,29 @@ const fs = require('fs');
 
 const Thing = require('../models/Thing');
 
+
 exports.modifyThing = (req, res, next) => {
     const thingObject = req.file ?
     {
         ...JSON.parse(req.body.thing),
         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
     } : {...req.body};
-    Thing.updateOne({ _id: req.params.id }, { ...thingObject, _id: req.params.id })
-        .then(() => res.status(201).json({ message: 'Thing updated' }))
-        .catch(error => res.status(400).json(error));
+    if(req.file){
+        Thing.findOne({_id: req.params.id})
+        .then(thing=>{
+            const filename = thing.imageUrl.split('/images/')[1];
+            fs.unlink(`images/${filename}`, ()=>{
+                Thing.updateOne({ _id: req.params.id }, { ...thingObject, _id: req.params.id })
+                    .then(() => {return res.status(201).json({ message: 'Thing updated' })})
+                    .catch(error => res.status(400).json(error));
+            })
+        })
+    }
+    else{
+        Thing.updateOne({ _id: req.params.id }, { ...thingObject, _id: req.params.id })
+            .then(() => res.status(201).json({ message: 'Thing updated' }))
+            .catch(error => res.status(400).json(error));
+    }
 };
 
 exports.createThing = (req, res, next) => {
