@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const stuffRoutes = require('./routes/stuff');
 const userRoutes  =require('./routes/user');
+const path = require('path');
+
 
 mongoose.connect('mongodb://localhost/db',{
     useNewUrlParser: true,
@@ -19,6 +21,7 @@ app.use((req,res, next)=>{
     next();
 })
 .use(bodyParser.json())
+.use('/images', express.static(path.join(__dirname, 'images')))
 .use('/api/stuff', stuffRoutes)
 .use('/api/auth', userRoutes)
 

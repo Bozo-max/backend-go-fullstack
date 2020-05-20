@@ -1,14 +1,24 @@
 const Thing = require('../models/Thing');
 
 exports.modifyThing = (req, res, next) => {
-    Thing.updateOne({ _id: req.params.id }, { ...req.body, _id: req.params.id })
+    const thingObject = req.file ?
+    {
+        ...JSON.parse(req.body.thing),
+        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+    } : {...req.body};
+    Thing.updateOne({ _id: req.params.id }, { ...thingObject, _id: req.params.id })
         .then(() => res.status(201).json({ message: 'Thing updated' }))
         .catch(error => res.status(400).json(error));
 };
 
 exports.createThing = (req, res, next) => {
-    delete req.body._id;
-    const thing = new Thing({ ...req.body });
+    const thingObject = JSON.parse(req.body.thing);
+    delete thingObject._id;
+    const thing = new Thing({ 
+        ...thingObject,
+        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+     });
+     console.log(req.get('host'));
     thing.save()
         .then(() => res.status(201).json({ message: 'Thing created' }))
         .catch(error => res.status(400).json({ error }));
